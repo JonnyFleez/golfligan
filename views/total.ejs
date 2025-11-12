@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Totalställning – GolfLigan</title>
+  <style>
+    body { font-family: Arial; margin: 2rem; background: #f4f4f4; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
+    h1 { color: #1a5d1a; text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.8rem; border: 1px solid #ddd; text-align: center; }
+    th { background: #1a5d1a; color: white; }
+    .winner { background: #ffd700; font-weight: bold; }
+    .you { background: #d4edda; }
+    .btn { padding: 0.5rem 1rem; background: #1a5d1a; color: white; text-decoration: none; border-radius: 5px; margin: 0.5rem; display: inline-block; }
+    .btn:hover { background: #146b14; }
+    .season-complete { background: #e6f7e6; padding: 1rem; border-radius: 5px; text-align: center; font-weight: bold; margin: 1rem 0; }
+    .season-ongoing { background: #fff3cd; padding: 1rem; border-radius: 5px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GolfLigan 2025 – Totalställning</h1>
+    <p><strong><%= playerName %></strong> | <a href="/" class="btn">Tillbaka</a></p>
+
+    <% if (seasonComplete && winner) { %>
+      <div class="season-complete">
+        SÄSONGEN ÄR AVSLUTAD! <br>
+        <span style="font-size: 1.5rem;">GRATTIS <%= winner.name %> – ÅRETS MÄSTARE!</span>
+      </div>
+    <% } else if (gameDays.length > 0) { %>
+      <div class="season-ongoing">
+        Säsongen pågår – vinnaren utses först när sista tävlingen är klar!
+      </div>
+    <% } %>
+
+    <table>
+      <tr>
+        <th>Spelare</th>
+        <th>Rundor</th>
+        <th>Totalpoäng</th>
+        <th>Snitt</th>
+        <th>Ölskuld</th>
+      </tr>
+      <% stats.forEach((s, i) => { %>
+        <tr <%= s.name === playerName ? 'class="you"' : '' %> <%= seasonComplete && i === 0 ? 'class="winner"' : '' %>>
+          <td><%= s.name %> <% if(s.nickname) { %>("<%= s.nickname %>")<% } %></td>
+          <td><%= s.rounds %></td>
+          <td><%= s.totalPoints %></td>
+          <td><%= s.avgPlacement %></td>
+          <td><strong>-<%= s.beerDebt %></strong></td>
+        </tr>
+      <% }) %>
+    </table>
+
+    <br>
+    <% if (isAdmin) { %>
+      <a href="/admin" class="btn">Admin</a>
+    <% } %>
+    <a href="/game-days" class="btn">Rapportera</a>
+  </div>
+</body>
+</html>

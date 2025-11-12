@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ny speldag – Admin</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 2rem; }
+    .card { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
+    label { display: block; margin: 1rem 0 0.3rem; font-weight: bold; }
+    input, select { width: 100%; padding: 0.6rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #1a5d1a; color: white; padding: 0.8rem; border: none; border-radius: 5px; cursor: pointer; }
+    .checkbox { display: flex; gap: 0.5rem; align-items: center; margin: 1rem 0; }
+    .group-input { margin-bottom: 0.5rem; }
+    .hidden { display: none; }
+    small { color: #666; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Skapa ny speldag</h2>
+    <form method="POST" action="/admin/game-day/create">
+      <label>Datum</label>
+      <input type="date" name="date" required>
+
+      <label>Tee</label>
+      <select name="tee">
+        <option value="Gul">Gul</option>
+        <option value="Röd">Röd</option>
+        <option value="Blå">Blå</option>
+      </select>
+
+      <label>Spelform</label>
+      <input type="text" name="gameMode" placeholder="t.ex. Slaggolf" required>
+
+      <label>Sidospel</label>
+      <select name="sideGame" id="sideGame">
+        <option value="">Inget</option>
+        <option value="fyrbollstävling">Fyrbollstävling</option>
+      </select>
+
+      <div id="groups" class="hidden">
+        <label>Fyrbollar (en per rad, ID med komma)</label>
+        <input type="text" class="group-input" name="groups" placeholder="1,2,3,4">
+        <input type="text" class="group-input" name="groups" placeholder="5,6,7,8">
+        <input type="text" class="group-input" name="groups" placeholder="9,10,11,12">
+        <small>Spelar-ID finns i login-listan</small>
+      </div>
+
+      <div class="checkbox">
+        <input type="checkbox" name="beerGameEnabled" id="beerGame">
+        <label for="beerGame">Beergame aktiverat</label>
+      </div>
+
+      <button type="submit">Skapa speldag</button>
+    </form>
+    <br>
+    <a href="/admin">Avbryt</a>
+  </div>
+
+  <script>
+    document.getElementById('sideGame').addEventListener('change', function() {
+      document.getElementById('groups').classList.toggle('hidden', this.value !== 'fyrbollstävling');
+    });
+  </script>
+</body>
+</html>

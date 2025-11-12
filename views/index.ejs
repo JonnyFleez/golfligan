@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GolfLigan</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 2rem;
+            background: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1a5d1a;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background: #1a5d1a;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0.5rem 0;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #146b14;
+        }
+
+        .logout {
+            background: #aaa;
+        }
+
+        .admin {
+            background: #0066cc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>GolfLigan 2025</h1>
+
+        <% if (player) { %>
+            <p>Välkommen <strong>
+                    <%= player %>
+                </strong>!</p>
+
+            <!-- ADMIN-KNAPP – visas bara om isAdmin === 1 -->
+            <% if (isAdmin===1) { %>
+                <a href="/admin" class="btn admin">Admin-panel</a>
+                <% } %>
+
+                    <a href="/logout" class="btn logout">Logga ut</a>
+                    <hr>
+                    <p>
+                        <a href="/game-days" class="btn">Rapportera resultat</a>
+                        <a href="/total" class="btn">Se totalställning</a>
+                    </p>
+                    <% } else { %>
+                        <p>Du är inte inloggad.</p>
+                        <a href="/login" class="btn">Logga in</a>
+                        <% } %>
+    </div>
+</body>
+
+</html>

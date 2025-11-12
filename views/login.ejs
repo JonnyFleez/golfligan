@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logga in – GolfLigan</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; display: flex; justify-content: center; padding: 2rem; }
+    .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; font-size: 1rem; }
+    button { background: #1a5d1a; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    h2 { text-align: center; color: #1a5d1a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Välj spelare</h2>
+    <form method="POST" action="/login">
+      <select name="playerId" required>
+        <option value="">-- Välj dig själv --</option>
+        <% players.forEach(p => { %>
+          <option value="<%= p.id %>"><%= p.name %> <% if(p.nickname){ %>("<%= p.nickname %>")<% } %></option>
+        <% }) %>
+      </select>
+      <button type="submit">Logga in</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rapportera – <%= gameDay.date %></title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 2rem; }
+    .card { max-width: 500px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
+    label { display: block; margin: 1rem 0 0.5rem; font-weight: bold; }
+    input, select { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #1a5d1a; color: white; padding: 0.8rem; border: none; border-radius: 5px; margin-top: 1rem; cursor: pointer; }
+    .info { background: #e6f7e6; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2><%= gameDay.date %> – <%= gameDay.gameMode %></h2>
+    <p>Tee: <strong><%= gameDay.tee %></strong></p>
+
+    <form method="POST" action="/game-day/<%= gameDay.id %>/report">
+      <label>Placering i huvudtävling</label>
+      <select name="placement" required>
+        <% for(let i=1; i<=16; i++) { %>
+          <option value="<%= i %>" <%= result.placement == i ? 'selected' : '' %>><%= i %></option>
+        <% } %>
+      </select>
+
+      <% if (sidePlacement) { %>
+        <div class="info">
+          <strong>Sidospel:</strong> Din boll fick plats <%= (sidePlacement === 1 ? '1:a' : sidePlacement === 5 ? '2:a' : '3:e') %> → <strong><%= sidePlacement %>:e plats</strong>
+          <input type="hidden" name="sidePlacement" value="<%= sidePlacement %>">
+        </div>
+      <% } %>
+
+      <% if (gameDay.beerGameEnabled) { %>
+        <label>Beergame (netto polletter, t.ex. -4 eller +2)</label>
+        <input type="number" name="beerTokens" value="<%= result.beerTokens %>" required placeholder="t.ex. -4">
+      <% } %>
+
+      <button type="submit">Skicka in resultat</button>
+    </form>
+
+    <% if (isAdmin) { %>
+      <br><a href="/admin">Till admin</a>
+    <% } %>
+  </div>
+</body>
+</html>

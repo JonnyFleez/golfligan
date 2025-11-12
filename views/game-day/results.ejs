@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultat – <%= gameDay.date %></title>
+  <style>
+    body { font-family: Arial; margin: 2rem; background: #f4f4f4; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.8rem; border: 1px solid #ddd; text-align: left; }
+    th { background: #1a5d1a; color: white; }
+    .you { background: #d4edda; font-weight: bold; }
+    .btn { padding: 0.5rem 1rem; background: #1a5d1a; color: white; text-decoration: none; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Resultat – <%= gameDay.date %></h1>
+    <p><strong><%= gameDay.gameMode %></strong> – Tee: <%= gameDay.tee %></p>
+
+    <table>
+      <tr>
+        <th>Spelare</th>
+        <th>Placering</th>
+        <th>Beergame</th>
+        <th>Inlämnat</th>
+      </tr>
+      <% results.forEach(r => { %>
+        <tr <%= r.playerId == playerId ? 'class="you"' : '' %>>
+          <td><%= r.name %> <% if(r.nickname) { %>("<%= r.nickname %>")<% } %></td>
+          <td><%= r.placement %></td>
+          <td><%= r.beerTokens %></td>
+          <td><%= r.submittedAt ? new Date(r.submittedAt).toLocaleString('sv-SE') : '—' %></td>
+        </tr>
+      <% }) %>
+    </table>
+
+    <br>
+    <a href="/game-days" class="btn">Tillbaka till speldagar</a>
+    <% if (isAdmin) { %>
+      <a href="/admin" class="btn">Admin</a>
+    <% } %>
+  </div>
+</body>
+</html>
