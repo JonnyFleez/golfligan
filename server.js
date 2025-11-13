@@ -87,12 +87,10 @@ app.get('/setup', (req, res) => {
 
 // === TOTALSTÄLLNING ===
 app.get('/total', requireLogin, (req, res) => {
-  // Hämta alla speldagar
-  db.all('SELECT id, date FROM game_days WHERE isActive = 1 ORDER BY date', (err, gameDays) => {
-    if (err) return res.status(500).send('Databasfel');
+    db.all('SELECT id, date FROM game_days WHERE isActive = 1 ORDER BY date', (err, gameDays) => {
+        if (err) return res.status(500).send('Databasfel');
 
-    // Hämta alla resultat
-    db.all(`
+        db.all(`
       SELECT 
         r.playerId,
         p.name,
@@ -107,109 +105,93 @@ app.get('/total', requireLogin, (req, res) => {
       WHERE p.isActive = 1 AND r.submitted = 1
       ORDER BY p.name, g.date
     `, (err, results) => {
-      if (err) return res.status(500).send('Databasfel');
+            if (err) return res.status(500).send('Databasfel');
 
-      // Beräkna totaler per spelare
-      const playerStats = {};
-      const gameDayIds = gameDays.map(g => g.id);
+            const playerStats = {};
 
-      results.forEach(r => {
-        if (!playerStats[r.playerId]) {
-          playerStats[r.playerId] = {
-            name: r.name,
-            nickname: r.nickname,
-            rounds: 0,
-            totalPoints: 0,
-            beerDebt: 0,
-            placements: []
-          };
-        }
-        const stat = playerStats[r.playerId];
-        if (r.placement < 17) {
-          stat.rounds++;
-          stat.totalPoints += r.placement;
-          stat.placements.push(r.placement);
-        }
-        if (r.beerTokens < 0) {
-          stat.beerDebt += Math.abs(r.beerTokens);
-        }
-      });
-
-      // Lägg till spelare som inte spelat alls
-      db.all('SELECT id, name, nickname FROM players WHERE isActive = 1', (err, allPlayers) => {
-        allPlayers.forEach(p => {
-          if (!playerStats[p.id]) {
-            playerStats[p.id] = {
-              name: p.name,
-              nickname: p.nickname,
-              rounds: 0,
-              totalPoints: 0,
-              beerDebt: 0,
-              placements: []
-            };
-          }
-        });
-
-        // Konvertera till array och sortera
-        const statsArray = Object.values(playerStats).map(stat => ({
-          ...stat,
-          avgPlacement: stat.rounds > 0 ? (stat.totalPoints / stat.rounds).toFixed(2) : '-'
-        }));
-
-        statsArray.sort((a, b) => {
-          if (a.rounds === 0 && b.rounds === 0) return a.name.localeCompare(b.name);
-          if (a.rounds === 0) return 1;
-          if (b.rounds === 0) return -1;
-          return a.totalPoints - b.totalPoints || b.rounds - a.rounds;
-        });
-
-        // Kolla om säsongen är klar
-        let seasonComplete = false;
-        let winner = null;
-        if (gameDays.length > 0) {
-          const lastGameDay = gameDays[gameDays.length - 1];
-          const lastGameDayId = lastGameDay.id;
-
-          db.get('SELECT COUNT(*) as count FROM results WHERE gameDayId = ? AND submitted = 1', [lastGameDayId], (err, row) => {
-            const expectedPlayers = Object.keys(playerStats).length;
-            const submitted = row.count;
-
-            seasonComplete = submitted >= expectedPlayers && submitted > 0;
-            if (seasonComplete && statsArray.length > 0) {
-              winner = statsArray[0];
-            }
-
-            res.render('total', {
-              stats: statsArray,
-              gameDays,
-              seasonComplete,
-              winner,
-              playerName: req.session.playerName,
-              isAdmin: req.session.isAdmin
+            results.forEach(r => {
+                if (!playerStats[r.playerId]) {
+                    playerStats[r.playerId] = {
+                        name: r.name,
+                        nickname: r.nickname,
+                        rounds: 0,
+                        totalPoints: 0,
+                        beerDebt: 0,
+                        placements: []
+                    };
+                }
+                const stat = playerStats[r.playerId];
+                if (r.placement < 17) {
+                    stat.rounds++;
+                    stat.totalPoints += r.placement;
+                    stat.placements.push(r.placement);
+                }
+                if (r.beerTokens < 0) {
+                    stat.beerDebt += Math.abs(r.beerTokens);
+                }
             });
-          });
-        } else {
-          res.render('total', {
-            stats: statsArray,
-            gameDays: [],
-            seasonComplete: false,
-            winner: null,
-            playerName: req.session.playerName,
-            isAdmin: req.session.isAdmin
-          });
-        }
-      });
-    });
-  });
-});
 
-app.listen(PORT, () => {
-    console.log(`GolfLigan körs på http://localhost:${PORT}`);
-    console.log(`Gå till /setup en gång för att lägga till spelare`);
+            db.all('SELECT id, name, nickname FROM players WHERE isActive = 1', (err, allPlayers) => {
+                allPlayers.forEach(p => {
+                    if (!playerStats[p.id]) {
+                        playerStats[p.id] = {
+                            name: p.name,
+                            nickname: p.nickname,
+                            rounds: 0,
+                            totalPoints: 0,
+                            beerDebt: 0,
+                            placements: []
+                        };
+                    }
+                });
+
+                const statsArray = Object.values(playerStats).map(stat => ({
+                    ...stat,
+                    avgPlacement: stat.rounds > 0 ? (stat.totalPoints / stat.rounds).toFixed(2) : '-'
+                }));
+
+                statsArray.sort((a, b) => {
+                    if (a.rounds === 0 && b.rounds === 0) return a.name.localeCompare(b.name);
+                    if (a.rounds === 0) return 1;
+                    if (b.rounds === 0) return -1;
+                    return a.totalPoints - b.totalPoints || b.rounds - a.rounds;
+                });
+
+                let seasonComplete = false;
+                let winner = null;
+                if (gameDays.length > 0) {
+                    const lastGameDayId = gameDays[gameDays.length - 1].id;
+                    db.get('SELECT COUNT(*) as count FROM results WHERE gameDayId = ? AND submitted = 1', [lastGameDayId], (err, row) => {
+                        const expectedPlayers = Object.keys(playerStats).length;
+                        const submitted = row ? row.count : 0;
+                        seasonComplete = submitted >= expectedPlayers && submitted > 0;
+                        if (seasonComplete && statsArray.length > 0) winner = statsArray[0];
+
+                        res.render('total', {
+                            stats: statsArray,
+                            gameDays,
+                            seasonComplete,
+                            winner,
+                            playerName: req.session.playerName,
+                            isAdmin: req.session.isAdmin
+                        });
+                    });
+                } else {
+                    res.render('total', {
+                        stats: statsArray,
+                        gameDays: [],
+                        seasonComplete: false,
+                        winner: null,
+                        playerName: req.session.playerName,
+                        isAdmin: req.session.isAdmin
+                    });
+                }
+            });
+        });
+    });
 });
 
 // === ADMIN ROUTES ===
-
 app.get('/admin', requireAdmin, (req, res) => {
     db.all('SELECT * FROM game_days ORDER BY date DESC', (err, gameDays) => {
         if (err) return res.status(500).send('Databasfel');
@@ -225,9 +207,7 @@ app.get('/admin/game-day/new', requireAdmin, (req, res) => {
 });
 
 app.post('/admin/game-day/create', requireAdmin, (req, res) => {
-    const {
-        date, tee, gameMode, sideGame, beerGameEnabled
-    } = req.body;
+    const { date, tee, gameMode, sideGame, beerGameEnabled } = req.body;
 
     let sideGameGroups = null;
     if (sideGame === 'fyrbollstävling' && Array.isArray(req.body.groups)) {
@@ -247,7 +227,6 @@ app.post('/admin/game-day/create', requireAdmin, (req, res) => {
 
         const gameDayId = this.lastID;
 
-        // Ge alla aktiva spelare 17:e plats automatiskt
         db.all('SELECT id FROM players WHERE isActive = 1', (err, players) => {
             if (err) return console.error(err);
             const stmt = db.prepare(`
@@ -262,17 +241,33 @@ app.post('/admin/game-day/create', requireAdmin, (req, res) => {
     });
 });
 
-// === SPELDAGAR FÖR SPELARE ===
-
-// Visa alla speldagar
-app.get('/game-days', requireLogin, (req, res) => {
-  db.all('SELECT id, date, tee, gameMode FROM game_days WHERE isActive = 1 ORDER BY date DESC', (err, gameDays) => {
-    if (err) return res.status(500).send('Databasfel');
-    res.render('game-day/index', { gameDays, playerName: req.session.playerName });
-  });
+// === SITE MESSAGE ===
+app.get('/admin/message', requireAdmin, (req, res) => {
+    db.get('SELECT site_message FROM game_days LIMIT 1', (err, row) => {
+        if (err) return res.status(500).send('Databasfel');
+        const message = row ? row.site_message || '' : '';
+        res.render('admin/message', { message, playerName: req.session.playerName });
+    });
 });
 
-// Rapportera resultat
+app.post('/admin/message', requireAdmin, (req, res) => {
+    const { message } = req.body;
+    db.run('UPDATE game_days SET site_message = ? WHERE id = (SELECT id FROM game_days LIMIT 1)', [message], (err) => {
+        if (err) return res.status(500).send('Kunde inte spara');
+        res.redirect('/admin');
+    });
+});
+
+// === SPELDAGAR FÖR SPELARE ===
+app.get('/game-days', requireLogin, (req, res) => {
+    db.all('SELECT id, date, tee, gameMode FROM game_days WHERE isActive = 1 ORDER BY date DESC', (err, gameDays) => {
+        if (err) return res.status(500).send('Databasfel');
+        res.render('game-day/index', { gameDays, playerName: req.session.playerName });
+    });
+});
+
+// Rapportera resultat – visa formulär
+// Rapportera resultat – visa formulär
 app.get('/game-day/:id/report', requireLogin, (req, res) => {
   const gameDayId = req.params.id;
   const playerId = req.session.playerId;
@@ -283,66 +278,105 @@ app.get('/game-day/:id/report', requireLogin, (req, res) => {
     db.get('SELECT * FROM results WHERE playerId = ? AND gameDayId = ?', [playerId, gameDayId], (err, result) => {
       if (err) return res.status(500).send('Databasfel');
 
-      // Om redan inlämnat och inte admin → visa resultat
       if (result && result.submitted && !req.session.isAdmin) {
         return res.redirect(`/game-day/${gameDayId}/results`);
       }
 
-      // Hämta sidospelsplacering
       let sidePlacement = null;
       if (gameDay.sideGame === 'fyrbollstävling' && gameDay.sideGameGroups) {
         const groups = JSON.parse(gameDay.sideGameGroups);
         for (let i = 0; i < groups.length; i++) {
           if (groups[i].includes(parseInt(playerId))) {
-            sidePlacement = (i + 1) * 4 + 1; // 1:a boll → 1, 2:a → 5, 3:e → 9
+            sidePlacement = (i + 1) * 4 + 1;
             break;
           }
         }
       }
 
-      res.render('game-day/report', {
-        gameDay,
-        result: result || { placement: 17, beerTokens: 0 },
-        sidePlacement,
-        isAdmin: req.session.isAdmin
+      // NYTT: Hämta placering
+      const placement = result ? result.placement : 17;
+      const beerCount = result && result.beerTokens !== null ? Math.abs(result.beerTokens) : 0;
+      const beerSign = result && result.beerTokens < 0 ? '-' : '+';
+
+      // Hämta antal spelare
+      db.get('SELECT COUNT(*) as count FROM players WHERE isActive = 1', (err, row) => {
+        if (err) return res.status(500).send('Databasfel');
+        const playerCount = row.count;
+
+        // SKICKA placement TILL VYN
+        res.render('game-day/report', {
+          gameDay,
+          result: result || { placement: 17, beerTokens: 0 },
+          sidePlacement,
+          isAdmin: req.session.isAdmin,
+          beerCount,
+          beerSign,
+          playerCount,
+          placement,  // HÄR SKICKAS DEN
+          playerName: req.session.playerName
+        });
       });
     });
   });
 });
 
-// Spara resultat
+// Spara resultat – UPPDATERAD FÖR NY BEERGAME
 app.post('/game-day/:id/report', requireLogin, (req, res) => {
-  const gameDayId = req.params.id;
-  const playerId = req.session.playerId;
-  const { placement, beerTokens } = req.body;
+    const gameDayId = req.params.id;
+    const playerId = req.session.playerId;
+    const placement = parseInt(req.body.placement);
 
-  const submittedAt = new Date().toISOString();
+    // NYTT: Läs beerCount + beerSign
+    const beerCount = parseInt(req.body.beerCount) || 0;
+    const beerSign = req.body.beerSign || '+';
+    const beerTokens = beerSign === '+' ? beerCount : -beerCount;
 
-  db.run(`
-    INSERT OR REPLACE INTO results (playerId, gameDayId, placement, beerTokens, submitted, submittedAt)
+    const submittedAt = new Date().toISOString();
+
+    if (!placement || placement < 1) {
+        return res.status(400).send('Välj en giltig placering');
+    }
+
+    db.run(`
+    INSERT OR REPLACE INTO results 
+    (playerId, gameDayId, placement, beerTokens, submitted, submittedAt)
     VALUES (?, ?, ?, ?, 1, ?)
   `, [playerId, gameDayId, placement, beerTokens, submittedAt], (err) => {
-    if (err) return res.status(500).send('Kunde inte spara');
-    res.redirect(`/game-day/${gameDayId}/results`);
-  });
+        if (err) {
+            console.error('DB Error:', err);
+            return res.status(500).send('Kunde inte spara resultat');
+        }
+        res.redirect(`/game-day/${gameDayId}/results`);
+    });
 });
 
 // Visa resultat (live)
 app.get('/game-day/:id/results', requireLogin, (req, res) => {
-  const gameDayId = req.params.id;
+    const gameDayId = req.params.id;
 
-  db.get('SELECT * FROM game_days WHERE id = ?', [gameDayId], (err, gameDay) => {
-    if (err || !gameDay) return res.status(404).send('Speldag hittades inte');
+    db.get('SELECT * FROM game_days WHERE id = ?', [gameDayId], (err, gameDay) => {
+        if (err || !gameDay) return res.status(404).send('Speldag hittades inte');
 
-    db.all(`
+        db.all(`
       SELECT r.*, p.name, p.nickname
       FROM results r
       JOIN players p ON r.playerId = p.id
       WHERE r.gameDayId = ?
       ORDER BY r.submitted DESC
     `, [gameDayId], (err, results) => {
-      if (err) return res.status(500).send('Databasfel');
-      res.render('game-day/results', { gameDay, results, playerId: req.session.playerId, isAdmin: req.session.isAdmin });
+            if (err) return res.status(500).send('Databasfel');
+            res.render('game-day/results', {
+                gameDay,
+                results,
+                playerId: req.session.playerId,
+                isAdmin: req.session.isAdmin
+            });
+        });
     });
-  });
+});
+
+// Starta server
+app.listen(PORT, () => {
+    console.log(`GolfLigan körs på http://localhost:${PORT}`);
+    console.log(`Gå till /setup en gång för att lägga till spelare`);
 });

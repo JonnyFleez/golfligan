@@ -15,15 +15,50 @@
     .you { background: #d4edda; }
     .btn { padding: 0.5rem 1rem; background: #1a5d1a; color: white; text-decoration: none; border-radius: 5px; margin: 0.5rem; display: inline-block; }
     .btn:hover { background: #146b14; }
+    .btn-primary {
+      background: #1a5d1a;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: #146b14;
+    }
     .season-complete { background: #e6f7e6; padding: 1rem; border-radius: 5px; text-align: center; font-weight: bold; margin: 1rem 0; }
     .season-ongoing { background: #fff3cd; padding: 1rem; border-radius: 5px; text-align: center; }
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .bottom-nav {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>GolfLigan 2025 – Totalställning</h1>
-    <p><strong><%= playerName %></strong> | <a href="/" class="btn">Tillbaka</a></p>
 
+    <!-- TOPP: Namn + Huvudmeny -->
+    <div class="top-nav">
+      <strong><%= playerName %></strong>
+      <button type="button" onclick="window.location.href='/'" class="btn-primary">Huvudmeny</button>
+    </div>
+
+    <!-- MEDDELANDE -->
     <% if (seasonComplete && winner) { %>
       <div class="season-complete">
         SÄSONGEN ÄR AVSLUTAD! <br>
@@ -35,6 +70,7 @@
       </div>
     <% } %>
 
+    <!-- TABELL -->
     <table>
       <tr>
         <th>Spelare</th>
@@ -54,11 +90,13 @@
       <% }) %>
     </table>
 
-    <br>
-    <% if (isAdmin) { %>
-      <a href="/admin" class="btn">Admin</a>
-    <% } %>
-    <a href="/game-days" class="btn">Rapportera</a>
+    <!-- NEDRE NAVIGATION – UTAN Huvudmeny -->
+    <div class="bottom-nav">
+      <% if (isAdmin) { %>
+        <a href="/admin" class="btn">Admin</a>
+      <% } %>
+      <a href="/game-days" class="btn">Rapportera</a>
+    </div>
   </div>
 </body>
 </html>

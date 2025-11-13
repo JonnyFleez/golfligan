@@ -3,47 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rapportera – <%= gameDay.date %></title>
+  <title>Rapportera resultat – GolfLigan</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 2rem; }
-    .card { max-width: 500px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
-    label { display: block; margin: 1rem 0 0.5rem; font-weight: bold; }
-    input, select { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #1a5d1a; color: white; padding: 0.8rem; border: none; border-radius: 5px; margin-top: 1rem; cursor: pointer; }
-    .info { background: #e6f7e6; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 2rem;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #1a5d1a;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .info {
+      color: #555;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .btn {
+      background: #1a5d1a;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      margin: 0.5rem 0.5rem 0 0;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #146b14;
+    }
+    .btn-secondary {
+      background: #6c757d;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .beer-game-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .beer-game-group select {
+      width: auto;
+      min-width: 80px;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin: 0;
+      font-weight: normal;
+    }
+    .preview {
+      font-weight: bold;
+      font-size: 1.1rem;
+      min-width: 50px;
+    }
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .top-nav strong {
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2><%= gameDay.date %> – <%= gameDay.gameMode %></h2>
-    <p>Tee: <strong><%= gameDay.tee %></strong></p>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="top-nav">
+      <strong><%= playerName %></strong>
+      <button type="button" onclick="window.location.href='/'" class="btn btn-secondary">Huvudmeny</button>
+    </div>
+
+    <h1><%= gameDay.date %> – <%= gameDay.gameMode %></h1>
+    <p class="info">Tee: <%= gameDay.tee %></p>
 
     <form method="POST" action="/game-day/<%= gameDay.id %>/report">
-      <label>Placering i huvudtävling</label>
-      <select name="placement" required>
-        <% for(let i=1; i<=16; i++) { %>
-          <option value="<%= i %>" <%= result.placement == i ? 'selected' : '' %>><%= i %></option>
+      <!-- PLACERING I HUVUDTÄVLING -->
+      <label for="placement">Placering i huvudtävling</label>
+      <select name="placement" id="placement" required>
+        <% for(let i = 1; i <= playerCount; i++) { %>
+          <option value="<%= i %>" <%= placement === i ? 'selected' : '' %>><%= i %></option>
         <% } %>
       </select>
 
-      <% if (sidePlacement) { %>
-        <div class="info">
-          <strong>Sidospel:</strong> Din boll fick plats <%= (sidePlacement === 1 ? '1:a' : sidePlacement === 5 ? '2:a' : '3:e') %> → <strong><%= sidePlacement %>:e plats</strong>
-          <input type="hidden" name="sidePlacement" value="<%= sidePlacement %>">
+      <!-- BEERGAME – NY DESIGN -->
+      <div style="margin: 1.5rem 0;">
+        <label><strong>Beergame (netto polletter)</strong></label>
+        <div class="beer-game-group">
+          <!-- Sifferval 0–9 -->
+          <select name="beerCount" id="beerCount">
+            <% for(let i = 0; i <= 9; i++) { %>
+              <option value="<%= i %>" <%= beerCount === i ? 'selected' : '' %>><%= i %></option>
+            <% } %>
+          </select>
+
+          <!-- + / - -->
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="beerSign" value="+" <%= beerSign === '+' || !beerSign ? 'checked' : '' %>>
+              <span style="color: #1a5d1a; font-weight: bold;">+</span>
+            </label>
+            <label>
+              <input type="radio" name="beerSign" value="-" <%= beerSign === '-' ? 'checked' : '' %>>
+              <span style="color: #d32f2f; font-weight: bold;">−</span>
+            </label>
+          </div>
+
+          <!-- Live preview -->
+          <span id="beerPreview" class="preview"></span>
         </div>
-      <% } %>
+      </div>
 
-      <% if (gameDay.beerGameEnabled) { %>
-        <label>Beergame (netto polletter, t.ex. -4 eller +2)</label>
-        <input type="number" name="beerTokens" value="<%= result.beerTokens %>" required placeholder="t.ex. -4">
-      <% } %>
-
-      <button type="submit">Skicka in resultat</button>
+      <!-- KNAPPAR -->
+      <div class="button-group">
+        <button type="submit" class="btn">Skicka in resultat</button>
+        <button type="button" onclick="window.location.href='/'" class="btn btn-secondary">Huvudmeny</button>
+      </div>
     </form>
-
-    <% if (isAdmin) { %>
-      <br><a href="/admin">Till admin</a>
-    <% } %>
   </div>
+
+  <!-- LIVE PREVIEW SCRIPT -->
+  <script>
+    function updateBeerPreview() {
+      const count = document.getElementById('beerCount').value;
+      const sign = document.querySelector('input[name="beerSign"]:checked')?.value || '+';
+      const result = sign === '+' ? `+${count}` : `−${count}`;
+      const preview = document.getElementById('beerPreview');
+      preview.textContent = count == 0 ? '±0' : result;
+      preview.style.color = count == 0 ? '#666' : (sign === '+' ? '#1a5d1a' : '#d32f2f');
+    }
+
+    // Uppdatera vid ändring
+    document.getElementById('beerCount').addEventListener('change', updateBeerPreview);
+    document.querySelectorAll('input[name="beerSign"]').forEach(radio => {
+      radio.addEventListener('change', updateBeerPreview);
+    });
+
+    // Kör vid laddning
+    updateBeerPreview();
+  </script>
 </body>
 </html>

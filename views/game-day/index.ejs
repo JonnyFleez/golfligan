@@ -1,44 +1,105 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Speldagar – GolfLigan</title>
   <style>
-    body { font-family: Arial; margin: 2rem; background: #f4f4f4; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 0.8rem; border: 1px solid #ddd; }
-    th { background: #1a5d1a; color: white; }
-    .btn { padding: 0.5rem 1rem; background: #1a5d1a; color: white; text-decoration: none; border-radius: 5px; }
-    .btn:hover { background: #146b14; }
+    body {
+      font-family: Arial;
+      margin: 2rem;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th,
+    td {
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background: #1a5d1a;
+      color: white;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      background: #1a5d1a;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .btn:hover {
+      background: #146b14;
+    }
+
+    .btn-primary {
+      background: #1a5d1a;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #146b14;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>Speldagar – <%= playerName %></h1>
-    <a href="/">Tillbaka</a>
+    <h1>Speldagar – <%= playerName %>
+    </h1>
+    <button type="button" onclick="window.location.href='/'" class="btn btn-primary">Huvudmeny</button>
 
-    <% if (gameDays.length === 0) { %>
+    <% if (gameDays.length===0) { %>
       <p><em>Inga speldagar än.</em></p>
-    <% } else { %>
-      <table>
-        <tr>
-          <th>Datum</th>
-          <th>Tee</th>
-          <th>Spelform</th>
-          <th>Åtgärd</th>
-        </tr>
-        <% gameDays.forEach(day => { %>
+      <% } else { %>
+        <table>
           <tr>
-            <td><%= day.date %></td>
-            <td><%= day.tee %></td>
-            <td><%= day.gameMode %></td>
-            <td><a href="/game-day/<%= day.id %>/report" class="btn">Rapportera</a></td>
+            <th>Datum</th>
+            <th>Tee</th>
+            <th>Spelform</th>
+            <th>Åtgärd</th>
           </tr>
-        <% }) %>
-      </table>
-    <% } %>
+          <% gameDays.forEach(day=> { %>
+            <tr>
+              <td>
+                <%= day.date %>
+              </td>
+              <td>
+                <%= day.tee %>
+              </td>
+              <td>
+                <%= day.gameMode %>
+              </td>
+              <td><a href="/game-day/<%= day.id %>/report" class="btn">Rapportera</a></td>
+            </tr>
+            <% }) %>
+        </table>
+        <% } %>
   </div>
 </body>
+
 </html>
