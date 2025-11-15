@@ -3,187 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rapportera resultat – GolfLigan</title>
+  <title>Rapportera – GolfLigan</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 2rem;
+    body { background: #f8f9fa; }
+    .card { border-radius: 20px; max-width: 500px; margin: 0 auto; }
+    .btn-outline-success, .btn-outline-danger { 
+      width: 60px; 
+      height: 60px; 
+      font-size: 1.8rem; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
     }
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    #beerValueDisplay { 
+      min-width: 70px; 
+      text-align: center; 
+      font-size: 2.2rem; 
+      font-weight: 600;
     }
-    h1 {
-      color: #1a5d1a;
+    #beerInfo { 
+      font-size: 1.2rem; 
+      margin-top: 15px; 
       text-align: center;
-      margin-bottom: 0.5rem;
     }
-    .info {
-      color: #555;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
+    #beerEmoji { 
+      font-size: 2.5rem; 
+      margin-right: 12px;
     }
-    label {
-      display: block;
-      margin: 1rem 0 0.5rem;
-      font-weight: bold;
+    .form-select { 
+      font-size: 1.2rem; 
+      padding: 12px;
     }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-    .btn {
-      background: #1a5d1a;
-      color: white;
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1rem;
-      margin: 0.5rem 0.5rem 0 0;
-      transition: background 0.2s;
-    }
-    .btn:hover {
-      background: #146b14;
-    }
-    .btn-secondary {
-      background: #6c757d;
-    }
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-    }
-    .beer-game-group {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-top: 0.5rem;
-    }
-    .beer-game-group select {
-      width: auto;
-      min-width: 80px;
-    }
-    .radio-group {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    .radio-group label {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      margin: 0;
-      font-weight: normal;
-    }
-    .preview {
-      font-weight: bold;
-      font-size: 1.1rem;
-      min-width: 50px;
-    }
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    .top-nav strong {
-      font-size: 1.1rem;
-    }
+    .fw-bold { font-weight: 600; }
+    .text-success { color: #1a5d1a !important; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- HEADER -->
-    <div class="top-nav">
-      <strong><%= playerName %></strong>
-      <button type="button" onclick="window.location.href='/'" class="btn btn-secondary">Huvudmeny</button>
-    </div>
+  <div class="container my-4">
+    <div class="card shadow-sm p-4">
 
-    <h1><%= gameDay.date %> – <%= gameDay.gameMode %></h1>
-    <p class="info">Tee: <%= gameDay.tee %></p>
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold mb-0"><%= playerName %></h2>
+        <a href="/" class="btn btn-secondary">Huvudmeny</a>
+      </div>
 
-    <form method="POST" action="/game-day/<%= gameDay.id %>/report">
-      <!-- PLACERING I HUVUDTÄVLING -->
-      <label for="placement">Placering i huvudtävling</label>
-      <select name="placement" id="placement" required>
-        <% for(let i = 1; i <= playerCount; i++) { %>
-          <option value="<%= i %>" <%= placement === i ? 'selected' : '' %>><%= i %></option>
-        <% } %>
-      </select>
+      <!-- Speldag info -->
+      <p class="text-success fs-5 fw-semibold mb-0"><%= gameDay.date %> – <%= gameDay.gameMode || gameDay.type %></p>
+      <p class="text-secondary mb-3">Tee: <%= gameDay.tee %></p>
 
-      <!-- BEERGAME – NY DESIGN -->
-      <div style="margin: 1.5rem 0;">
-        <label><strong>Beergame (netto polletter)</strong></label>
-        <div class="beer-game-group">
-          <!-- Sifferval 0–9 -->
-          <select name="beerCount" id="beerCount">
-            <% for(let i = 0; i <= 9; i++) { %>
-              <option value="<%= i %>" <%= beerCount === i ? 'selected' : '' %>><%= i %></option>
-            <% } %>
-          </select>
+      <% if (sidePlacement) { %>
+        <p class="text-info mb-3 fw-semibold">Sidospel placering: <%= sidePlacement %></p>
+      <% } %>
 
-          <!-- + / - -->
-          <div class="radio-group">
-            <label>
-              <input type="radio" name="beerSign" value="+" <%= beerSign === '+' || !beerSign ? 'checked' : '' %>>
-              <span style="color: #1a5d1a; font-weight: bold;">+</span>
-            </label>
-            <label>
-              <input type="radio" name="beerSign" value="-" <%= beerSign === '-' ? 'checked' : '' %>>
-              <span style="color: #d32f2f; font-weight: bold;">−</span>
-            </label>
-          </div>
+      <hr>
 
-          <!-- Live preview -->
-          <span id="beerPreview" class="preview"></span>
+      <!-- Formulär -->
+      <form action="/game-day/<%= gameDay.id %>/report" method="POST">
+
+        <!-- Placering -->
+        <label class="fw-semibold mb-1 d-block">Placering i huvudtävling</label>
+        <select name="placement" class="form-select mb-4" required>
+          <% for (let i = 1; i <= playerCount; i++) { %>
+            <option value="<%= i %>" <%= placement == i ? 'selected' : '' %>><%= i %></option>
+          <% } %>
+        </select>
+
+        <!-- Beergame -->
+        <label class="fw-semibold mb-1 d-block">Beergame (netto poletter)</label>
+        <div class="d-flex align-items-center gap-3 mb-3 justify-content-center">
+          <button type="button" id="beerMinus" class="btn btn-outline-danger fw-bold">−</button>
+          <span id="beerValueDisplay" class="fw-bold">0</span>
+          <button type="button" id="beerPlus" class="btn btn-outline-success fw-bold">+</button>
         </div>
-      </div>
 
-      <!-- KNAPPAR -->
-      <div class="button-group">
-        <button type="submit" class="btn">Skicka in resultat</button>
-        <button type="button" onclick="window.location.href='/'" class="btn btn-secondary">Huvudmeny</button>
-      </div>
-    </form>
+        <!-- Dolda fält -->
+        <input type="hidden" id="beerSign" name="beerSign" value="+">
+        <input type="hidden" id="beerCount" name="beerCount" value="0">
+
+        <!-- Feedback med emojis -->
+        <div id="beerInfo" class="d-flex align-items-center justify-content-center">
+          <span id="beerEmoji"></span>
+          <span id="beerText" class="fw-semibold"></span>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-success w-100 mt-4 py-3 fw-bold fs-5">
+          Skicka in resultat
+        </button>
+      </form>
+    </div>
   </div>
 
-  <!-- LIVE PREVIEW SCRIPT -->
-  <script>
-    function updateBeerPreview() {
-      const count = document.getElementById('beerCount').value;
-      const sign = document.querySelector('input[name="beerSign"]:checked')?.value || '+';
-      const result = sign === '+' ? `+${count}` : `−${count}`;
-      const preview = document.getElementById('beerPreview');
-      preview.textContent = count == 0 ? '±0' : result;
-      preview.style.color = count == 0 ? '#666' : (sign === '+' ? '#1a5d1a' : '#d32f2f');
+<script>
+  let beerValue = <%= beerCount %> * (<%= beerSign === '-' ? -1 : 1 %>);
+
+  const minusBtn = document.getElementById("beerMinus");
+  const plusBtn = document.getElementById("beerPlus");
+  const beerSignInput = document.getElementById("beerSign");
+  const beerCountInput = document.getElementById("beerCount");
+  const beerValueDisplay = document.getElementById("beerValueDisplay");
+  const beerEmoji = document.getElementById("beerEmoji");
+  const beerText = document.getElementById("beerText");
+
+  function updateBeerDisplay() {
+    // Begränsa -9 till +9
+    if (beerValue > 9) beerValue = 9;
+    if (beerValue < -9) beerValue = -9;
+
+    // Uppdatera dolda fält
+    beerSignInput.value = beerValue >= 0 ? "+" : "-";
+    beerCountInput.value = Math.abs(beerValue);
+
+    // Visa värde
+    beerValueDisplay.textContent = beerValue === 0 ? '0' : (beerValue > 0 ? `+${beerValue}` : beerValue);
+
+    // Riktiga emojis
+    if (beerValue > 0) {
+      beerEmoji.textContent = "😊"; // Positiva poletter
+      beerText.textContent = `${beerValue} positiva poletter`;
+    } else if (beerValue < 0) {
+      beerEmoji.textContent = "😡"; // Negativa poletter
+      beerText.textContent = `${Math.abs(beerValue)} negativa poletter`;
+    } else {
+      beerEmoji.textContent = "😐"; // Neutral
+      beerText.textContent = `0 poletter`;
     }
+  }
 
-    // Uppdatera vid ändring
-    document.getElementById('beerCount').addEventListener('change', updateBeerPreview);
-    document.querySelectorAll('input[name="beerSign"]').forEach(radio => {
-      radio.addEventListener('change', updateBeerPreview);
-    });
+  minusBtn.addEventListener("click", () => {
+    beerValue--;
+    updateBeerDisplay();
+  });
 
-    // Kör vid laddning
-    updateBeerPreview();
-  </script>
+  plusBtn.addEventListener("click", () => {
+    beerValue++;
+    updateBeerDisplay();
+  });
+
+  // Kör vid start
+  updateBeerDisplay();
+</script>
 </body>
 </html>

@@ -267,66 +267,65 @@ app.get('/game-days', requireLogin, (req, res) => {
 });
 
 // Rapportera resultat – visa formulär
-// Rapportera resultat – visa formulär
 app.get('/game-day/:id/report', requireLogin, (req, res) => {
-  const gameDayId = req.params.id;
-  const playerId = req.session.playerId;
+    const gameDayId = req.params.id;
+    const playerId = req.session.playerId;
 
-  db.get('SELECT * FROM game_days WHERE id = ?', [gameDayId], (err, gameDay) => {
-    if (err || !gameDay) return res.status(404).send('Speldag hittades inte');
+    db.get('SELECT * FROM game_days WHERE id = ?', [gameDayId], (err, gameDay) => {
+        if (err || !gameDay) return res.status(404).send('Speldag hittades inte');
 
-    db.get('SELECT * FROM results WHERE playerId = ? AND gameDayId = ?', [playerId, gameDayId], (err, result) => {
-      if (err) return res.status(500).send('Databasfel');
+        db.get('SELECT * FROM results WHERE playerId = ? AND gameDayId = ?', [playerId, gameDayId], (err, result) => {
+            if (err) return res.status(500).send('Databasfel');
 
-      if (result && result.submitted && !req.session.isAdmin) {
-        return res.redirect(`/game-day/${gameDayId}/results`);
-      }
+            if (result && result.submitted && !req.session.isAdmin) {
+                return res.redirect(`/game-day/${gameDayId}/results`);
+            }
 
-      let sidePlacement = null;
-      if (gameDay.sideGame === 'fyrbollstävling' && gameDay.sideGameGroups) {
-        const groups = JSON.parse(gameDay.sideGameGroups);
-        for (let i = 0; i < groups.length; i++) {
-          if (groups[i].includes(parseInt(playerId))) {
-            sidePlacement = (i + 1) * 4 + 1;
-            break;
-          }
-        }
-      }
+            let sidePlacement = null;
+            if (gameDay.sideGame === 'fyrbollstävling' && gameDay.sideGameGroups) {
+                const groups = JSON.parse(gameDay.sideGameGroups);
+                for (let i = 0; i < groups.length; i++) {
+                    if (groups[i].includes(parseInt(playerId))) {
+                        sidePlacement = (i + 1) * 4 + 1;
+                        break;
+                    }
+                }
+            }
 
-      // NYTT: Hämta placering
-      const placement = result ? result.placement : 17;
-      const beerCount = result && result.beerTokens !== null ? Math.abs(result.beerTokens) : 0;
-      const beerSign = result && result.beerTokens < 0 ? '-' : '+';
+            // Hämta befintligt resultat
+            const placement = result ? result.placement : 17;
+            const beerCount = result && result.beerTokens !== null ? Math.abs(result.beerTokens) : 0;
+            const beerSign = result && result.beerTokens < 0 ? '-' : '+';
 
-      // Hämta antal spelare
-      db.get('SELECT COUNT(*) as count FROM players WHERE isActive = 1', (err, row) => {
-        if (err) return res.status(500).send('Databasfel');
-        const playerCount = row.count;
+            // Hämta antal aktiva spelare
+            db.get('SELECT COUNT(*) as count FROM players WHERE isActive = 1', (err, row) => {
+                if (err) return res.status(500).send('Databasfel');
+                const playerCount = row.count;
 
-        // SKICKA placement TILL VYN
-        res.render('game-day/report', {
-          gameDay,
-          result: result || { placement: 17, beerTokens: 0 },
-          sidePlacement,
-          isAdmin: req.session.isAdmin,
-          beerCount,
-          beerSign,
-          playerCount,
-          placement,  // HÄR SKICKAS DEN
-          playerName: req.session.playerName
+                res.render('game-day/report', {
+                    gameDay,
+                    result: result || { placement: 17, beerTokens: 0 },
+                    sidePlacement,
+                    isAdmin: req.session.isAdmin,
+                    beerCount,
+                    beerSign,
+                    playerCount,
+                    placement,
+                    playerName: req.session.playerName,
+                    playerId: req.session.playerId  // NYTT – SKICKA playerId
+                });
+            });
         });
-      });
     });
-  });
 });
 
-// Spara resultat – UPPDATERAD FÖR NY BEERGAME
+// Spara resultat – stödjer +/− knappar
 app.post('/game-day/:id/report', requireLogin, (req, res) => {
     const gameDayId = req.params.id;
     const playerId = req.session.playerId;
     const placement = parseInt(req.body.placement);
 
-    // NYTT: Läs beerCount + beerSign
+    // Läs från +/− knappar
     const beerCount = parseInt(req.body.beerCount) || 0;
     const beerSign = req.body.beerSign || '+';
     const beerTokens = beerSign === '+' ? beerCount : -beerCount;
